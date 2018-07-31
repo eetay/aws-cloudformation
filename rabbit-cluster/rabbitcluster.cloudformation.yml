@@ -148,8 +148,8 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       AutoScalingGroupName: "RabbitClusterInstancesASG"
-      MinSize: "1"
-      MaxSize: "3"
+      MinSize: "3"
+      MaxSize: "4"
       LoadBalancerNames:
       - "RabbitClusterLB"
       # AvailabilityZones:
