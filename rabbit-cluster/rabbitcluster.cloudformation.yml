@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  RabbitClusterVPC:
+    Type: String
+
+#
+# CloudFormation resources
+#
+Resources:
+
+  #
+  # Role that our cluster instances will assume to provide access to other AWS resources
+  #
+  RabbitClusterIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            Service:
+            - "ec2.amazonaws.com"
+          Action:
+          - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: "RabbitClusterPolicy"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - "autoscaling:DescribeAutoScalingGroups"
+              - "autoscaling:DescribeAutoScalingInstances"
+              - "ec2:DescribeInstances"
+              Resource: '*'
+
+  RabbitClusterInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref RabbitClusterIamRole
+      InstanceProfileName: "RabbitClusterInstanceProfile"
+
+  RabbitClusterSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: String
+      GroupDescription: String
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: '0'
+        ToPort: '65535'
+        CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '4369'
+        ToPort: '4369'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '5672'
+        ToPort: '5672'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '15672'
+        ToPort: '15672'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '25672'
+        ToPort: '25672'
+        CidrIp: 0.0.0.0/0
+      VpcId: !Ref RabbitClusterVPC
+
+  RabbitClusterInstanceTemplate:
+    Type: "AWS::EC2::LaunchTemplate"
+    Properties:
+      LaunchTemplateName: String
+      LaunchTemplateData:
+        BlockDeviceMappings:
+        - Ebs:
+            SnapshotId: "snap-07ad5635357af8b3e"
+            VolumeType: "gp2"
+            Encrypted: false
+            # VolumeSize: 8
+            DeleteOnTermination: true
+          DeviceName: "/dev/xvda"
+        SecurityGroups:
+        - !Ref RabbitClusterSG
+        UserData: "Eetay"
+        IamInstanceProfile:
+          Name: "RabbitClusterInstanceProfile"
+        ImageId: "ami-cfe4b2b0"
+        KeyName: "RabbitMQKeyPair"
+        InstanceType: "t2.micro"
+        Monitoring:
+          Enabled: true
+
