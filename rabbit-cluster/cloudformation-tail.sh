@@ -22,8 +22,8 @@ cloudformation_tail() {
   		LastEventId=$EventId
       echo -ne "\\r"
   		echo "$Timestamp $ResourceType $LogicalResourceId $ResourceStatus"
-      echo "EVID $EventId EVID"
-      echo "LAST $LastEvent LAST"
+      #echo "EVID $EventId EVID"
+      #echo "LAST $LastEvent LAST"
   	fi
   	sleep 3
     echo -n "."

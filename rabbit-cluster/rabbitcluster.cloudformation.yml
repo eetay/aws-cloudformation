@@ -5,11 +5,16 @@ Parameters:
     Type: String
   InstanceKeyPair:
     Type: String
+  RabbitClusterVPCSubnets:
+    Type: String
+    Description: Subnets available in default VPC
 
 #
 # CloudFormation resources
 #
 Resources:
+
+
 
   #
   # Role that our cluster instances will assume to provide access to other AWS resources
@@ -104,6 +109,56 @@ Resources:
           # VolumeSize: 8
           DeleteOnTermination: true
         DeviceName: "/dev/xvda"
+
+  RabbitClusterLB:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      LoadBalancerName: "RabbitClusterLB"
+      HealthCheck:
+        HealthyThreshold: "10"
+        Interval: "30"
+        Target: "TCP:22"
+        Timeout: "5"
+        UnhealthyThreshold: "2"
+      Listeners:
+      - LoadBalancerPort: '22'
+        InstancePort: '22'
+        Protocol: "TCP"
+      - LoadBalancerPort: '5672'
+        InstancePort: '5672'
+        Protocol: "TCP"
+      - LoadBalancerPort: '15672'
+        InstancePort: '15672'
+        Protocol: "TCP"
+      Scheme: "internal"
+      SecurityGroups:
+        - !Ref RabbitClusterSG
+      Subnets:
+        Fn::Split:
+          - ","
+          - !Ref RabbitClusterVPCSubnets
+
+  RabbitClusterInstancesASG:
+    # UpdatePolicy:
+    #   AutoScalingRollingUpdate:
+    #     MinInstancesInService: "1"
+    #     MaxBatchSize: "1"
+    #     PauseTime: "PT12M5S"
+    #     WaitOnResourceSignals: "true"
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: "1"
+      MaxSize: "3"
+      LoadBalancerNames:
+      - "RabbitClusterLB"
+      # AvailabilityZones:
+      #   Fn::GetAZs: !Ref "AWS::Region"
+      LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration"
+      VPCZoneIdentifier:
+        Fn::Split:
+          - ","
+          - !Ref RabbitClusterVPCSubnets
+
 
   RabbitClusterInstanceTemplate:
     DependsOn: RabbitClusterSG
