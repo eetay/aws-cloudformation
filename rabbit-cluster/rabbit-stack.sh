@@ -6,7 +6,8 @@ STACK=RabbitClusterStack
 
 case $ACTION in
   update|create)
-    aws cloudformation ${ACTION}-stack --stack-name $STACK --template-body file:///Users/eetay/dev/aws/rabbit/rabbitcluster.cloudformation.yml --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --parameters ParameterKey=RabbitClusterVPC,ParameterValue=$AWS_DEFAULT_VPC
+    aws cloudformation ${ACTION}-stack --stack-name $STACK --template-body file://./rabbitcluster.cloudformation.yml --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --parameters ParameterKey=RabbitClusterVPC,ParameterValue=$AWS_DEFAULT_VPC ParameterKey=InstanceKeyPair,ParameterValue=RabbitMQKeyPair
+    #aws cloudformation ${ACTION}-stack --stack-name $STACK --template-body file:///Users/eetay/dev/aws/rabbit/rabbitcluster.cloudformation.yml --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --parameters ParameterKey=RabbitClusterVPC,ParameterValue=$AWS_DEFAULT_VPC
     ./cloudformation-tail.sh $STACK $AWS_REGION $AWS_PROFILE
     ;;
   delete)

@@ -3,6 +3,8 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   RabbitClusterVPC:
     Type: String
+  InstanceKeyPair:
+    Type: String
 
 #
 # CloudFormation resources
@@ -48,8 +50,9 @@ Resources:
   RabbitClusterSG:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupName: String
-      GroupDescription: String
+      GroupName: "RabbitClusterSG"
+      GroupDescription: "Rabbit Cluster Instances Security Group"
+      VpcId: !Ref RabbitClusterVPC
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: '0'
@@ -76,28 +79,57 @@ Resources:
         FromPort: '25672'
         ToPort: '25672'
         CidrIp: 0.0.0.0/0
-      VpcId: !Ref RabbitClusterVPC
+
+  RabbitClusterScalingLaunchConfiguration:
+    # example: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-iaminstanceprofile
+    DependsOn: RabbitClusterSG
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: false
+      ImageId: "ami-cfe4b2b0"
+      SecurityGroups:
+      - Fn::GetAtt:
+        - RabbitClusterSG
+        - GroupId
+      InstanceType: "t2.micro"
+      InstanceMonitoring: true
+      LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration
+      KeyName: !Ref InstanceKeyPair
+      UserData:
+        Fn::Base64: "Eetay User Data From CloudFormation"
+      BlockDeviceMappings:
+      - Ebs:
+          # SnapshotId: "snap-07ad5635357af8b3e"
+          VolumeType: "gp2"
+          # VolumeSize: 8
+          DeleteOnTermination: true
+        DeviceName: "/dev/xvda"
 
   RabbitClusterInstanceTemplate:
+    DependsOn: RabbitClusterSG
     Type: "AWS::EC2::LaunchTemplate"
     Properties:
       LaunchTemplateName: String
       LaunchTemplateData:
+        # NetworkInterfaces:
+        # - Description: "eth0"
+        #   DeleteOnTermination: true
+        #   DeviceIndex: 0
+        #   AssociatePublicIpAddress: false
         BlockDeviceMappings:
         - Ebs:
             SnapshotId: "snap-07ad5635357af8b3e"
             VolumeType: "gp2"
-            Encrypted: false
             # VolumeSize: 8
             DeleteOnTermination: true
           DeviceName: "/dev/xvda"
         SecurityGroups:
-        - !Ref RabbitClusterSG
+        - "RabbitClusterSG"
         UserData: "Eetay"
         IamInstanceProfile:
           Name: "RabbitClusterInstanceProfile"
         ImageId: "ami-cfe4b2b0"
-        KeyName: "RabbitMQKeyPair"
+        KeyName: !Ref InstanceKeyPair
         InstanceType: "t2.micro"
         Monitoring:
           Enabled: true
