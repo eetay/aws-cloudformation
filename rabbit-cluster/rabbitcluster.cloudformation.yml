@@ -147,6 +147,7 @@ Resources:
     #     WaitOnResourceSignals: "true"
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      AutoScalingGroupName: "RabbitClusterInstancesASG"
       MinSize: "1"
       MaxSize: "3"
       LoadBalancerNames:
@@ -158,6 +159,10 @@ Resources:
         Fn::Split:
           - ","
           - !Ref RabbitClusterVPCSubnets
+      Tags:
+      - Key: "Name"
+        Value: "RabbitClusterInstancesASG Instance"
+        PropagateAtLaunch: true
 
 
   RabbitClusterInstanceTemplate:
