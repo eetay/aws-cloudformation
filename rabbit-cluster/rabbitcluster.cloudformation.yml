@@ -128,14 +128,14 @@ Resources:
           DeleteOnTermination: true
         DeviceName: "/dev/xvda"
 
-  RabbitClusterLB:
+  RabbitClusterLB2:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
-      LoadBalancerName: "RabbitClusterLB"
+      LoadBalancerName: "RabbitClusterLB2"
       HealthCheck:
         HealthyThreshold: "10"
         Interval: "30"
-        Target: "HTTP:15672/api/healthchecks/node" # "TCP:5672"
+        Target: "TCP:5672" # "HTTP:15672/api/healthchecks/node"
         Timeout: "5"
         UnhealthyThreshold: "2"
       Listeners:
@@ -170,7 +170,7 @@ Resources:
       MinSize: "3"
       MaxSize: "4"
       LoadBalancerNames:
-      - "RabbitClusterLB"
+      - "RabbitClusterLB2"
       # AvailabilityZones:
       #   Fn::GetAZs: !Ref "AWS::Region"
       LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration2"
