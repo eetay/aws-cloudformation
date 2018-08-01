@@ -135,7 +135,7 @@ Resources:
       HealthCheck:
         HealthyThreshold: "10"
         Interval: "30"
-        Target: "TCP:22"
+        Target: "HTTP:15672/api/healthchecks/node" # "TCP:5672"
         Timeout: "5"
         UnhealthyThreshold: "2"
       Listeners:
@@ -148,7 +148,8 @@ Resources:
       - LoadBalancerPort: '15672'
         InstancePort: '15672'
         Protocol: "TCP"
-      Scheme: "internal"
+      # Scheme: "internal"
+      Scheme: "internet-facing"
       SecurityGroups:
         - !Ref RabbitClusterSG
       Subnets:
@@ -181,34 +182,4 @@ Resources:
       - Key: "Name"
         Value: "RabbitClusterInstancesASG Instance"
         PropagateAtLaunch: true
-
-
-  RabbitClusterInstanceTemplate:
-    DependsOn: RabbitClusterSG
-    Type: "AWS::EC2::LaunchTemplate"
-    Properties:
-      LaunchTemplateName: String
-      LaunchTemplateData:
-        # NetworkInterfaces:
-        # - Description: "eth0"
-        #   DeleteOnTermination: true
-        #   DeviceIndex: 0
-        #   AssociatePublicIpAddress: false
-        BlockDeviceMappings:
-        - Ebs:
-            SnapshotId: "snap-07ad5635357af8b3e"
-            VolumeType: "gp2"
-            # VolumeSize: 8
-            DeleteOnTermination: true
-          DeviceName: "/dev/xvda"
-        SecurityGroups:
-        - "RabbitClusterSG"
-        UserData: "Eetay"
-        IamInstanceProfile:
-          Name: "RabbitClusterInstanceProfile"
-        ImageId: "ami-cfe4b2b0"
-        KeyName: !Ref InstanceKeyPair
-        InstanceType: "t2.micro"
-        Monitoring:
-          Enabled: true
 
