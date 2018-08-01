@@ -90,8 +90,9 @@ Resources:
     DependsOn: RabbitClusterSG
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      AssociatePublicIpAddress: false
-      ImageId: "ami-cfe4b2b0"
+      AssociatePublicIpAddress: true
+      # ImageId: "ami-cfe4b2b0" # linux
+      ImageId: "ami-0682fcf8a18f7dcb7" # rabbit-1
       SecurityGroups:
       - Fn::GetAtt:
         - RabbitClusterSG
@@ -101,7 +102,14 @@ Resources:
       LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration
       KeyName: !Ref InstanceKeyPair
       UserData:
-        Fn::Base64: "Eetay User Data From CloudFormation"
+        Fn::Base64:
+          Fn::Join:
+          - "\n"
+          - - "#!/bin/bash"
+            - "echo '' > /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'cluster_formation.peer_discovery_backend=rabbit_peer_discovery_aws' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'cluster_formation.aws.region=us-east-1' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'cluster_formation.aws.use_autoscaling_group=true' >> /etc/rabbitmq/rabbitmq.conf"
       BlockDeviceMappings:
       - Ebs:
           # SnapshotId: "snap-07ad5635357af8b3e"
