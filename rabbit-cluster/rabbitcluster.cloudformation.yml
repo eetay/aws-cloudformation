@@ -91,8 +91,9 @@ Resources:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       AssociatePublicIpAddress: true
-      # ImageId: "ami-cfe4b2b0" # linux
-      ImageId: "ami-0682fcf8a18f7dcb7" # rabbit-1
+      # ImageId: "ami-cfe4b2b0" # AWS linux
+      # ImageId: "ami-0682fcf8a18f7dcb7" # rabbit-1
+      ImageId: "ami-0bc107842ebeeb7c0" # RabbitMQ-3.7.7
       SecurityGroups:
       - Fn::GetAtt:
         - RabbitClusterSG
@@ -105,11 +106,19 @@ Resources:
         Fn::Base64:
           Fn::Join:
           - "\n"
-          - - "#!/bin/bash"
+          - - "#!/bin/bash -x"
             - "echo '' > /etc/rabbitmq/rabbitmq.conf"
-            - "echo 'cluster_formation.peer_discovery_backend=rabbit_peer_discovery_aws' >> /etc/rabbitmq/rabbitmq.conf"
-            - "echo 'cluster_formation.aws.region=us-east-1' >> /etc/rabbitmq/rabbitmq.conf"
-            - "echo 'cluster_formation.aws.use_autoscaling_group=true' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'cluster_formation.peer_discovery_backend = rabbit_peer_discovery_aws' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'cluster_formation.aws.region = us-east-1' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'cluster_formation.aws.use_autoscaling_group = true' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'log.file.level = debug' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'log.console.level = debug' >> /etc/rabbitmq/rabbitmq.conf"
+            - "sudo rm -f /var/log/rabbitmq/*"
+            - "sudo service rabbitmq-server restart"
+            - "sleep 3"
+            - "rabbitmqctl add_user root root"
+            - "rabbitmqctl set_permissions -p / root  '.*' '.*' '.*'"
+            - "rabbitmqctl set_user_tags root administrator"
       BlockDeviceMappings:
       - Ebs:
           # SnapshotId: "snap-07ad5635357af8b3e"
