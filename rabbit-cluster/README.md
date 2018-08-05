@@ -10,14 +10,14 @@ This AMI is not included in the repo here, you have to build it and replace the 
 ID in the cloudformation template
 
 
-# Installation/Deploy
+## Installation/Deploy
 
-## First deploy
+#### First deploy
 ```bash
 ./rabbit-stack create
 ```
 
-## Deploying updates
+#### Deploying updates
 
 whenever you update the CloudFormation template:
 
@@ -25,9 +25,9 @@ whenever you update the CloudFormation template:
 ./rabbit-stack update
 ```
 
-# Notes
+## Notes
 
-### Creating the RabbitMQ AMI
+#### Creating the RabbitMQ AMI
 
 Installation is loosely based on "[Installing RabbitMQ With Erlang on AWS EC2 Amazon Linux Instance](https://dzone.com/articles/installing-rabbitmq-37-along-with-erlang-version-2)" 
 with few fixes, without configuration (which is handled in the CloudFormation template, since we want that to
