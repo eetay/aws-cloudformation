@@ -67,23 +67,23 @@ Resources:
       - IpProtocol: tcp
         FromPort: '22'
         ToPort: '22'
-        CidrIp: 0.0.0.0/0
+        SourceSecurityGroupName: 'RabbitClusterSG'
       - IpProtocol: tcp
         FromPort: '4369'
         ToPort: '4369'
-        CidrIp: 0.0.0.0/0
+        SourceSecurityGroupName: 'RabbitClusterSG'
       - IpProtocol: tcp
         FromPort: '5672'
         ToPort: '5672'
-        CidrIp: 0.0.0.0/0
+        SourceSecurityGroupName: 'RabbitClusterSG'
       - IpProtocol: tcp
         FromPort: '15672'
         ToPort: '15672'
-        CidrIp: 0.0.0.0/0
+        SourceSecurityGroupName: 'RabbitClusterSG'
       - IpProtocol: tcp
         FromPort: '25672'
         ToPort: '25672'
-        CidrIp: 0.0.0.0/0
+        SourceSecurityGroupName: 'RabbitClusterSG'
 
   RabbitClusterScalingLaunchConfiguration2:
     # example: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-iaminstanceprofile
