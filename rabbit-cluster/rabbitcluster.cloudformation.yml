@@ -71,7 +71,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: '4369'
         ToPort: '4369'
-        SourceSecurityGroupName: 'RabbitClusterSG'
+        CidrIp: 0.0.0.0/0
       - IpProtocol: tcp
         FromPort: '5672'
         ToPort: '5672'
