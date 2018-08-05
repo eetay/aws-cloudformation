@@ -36,6 +36,16 @@ whenever you update the CloudFormation template:
 
 ## Notes
 
+#### Example tunneling to internal ELB
+
+assuming you have a bastion host
+
+```bash
+ssh -N -i ~/.ssh/MyKeyToMyBastionHost.pem -L 8000:internal-RabbitClusrLB-1649447701.us-east-1.elb.amazonaws.com:15672 ec2-user@my-bastion-host
+```
+
+Then access RabbitMQ's management UI using browser at localhost:8000
+
 #### Creating the RabbitMQ AMI
 
 Installation is loosely based on "[Installing RabbitMQ With Erlang on AWS EC2 Amazon Linux Instance](https://dzone.com/articles/installing-rabbitmq-37-along-with-erlang-version-2)" 
@@ -55,3 +65,8 @@ sudo service rabbitmq-server start
 ```
 
 Take a snapshot of the machine, put the ID of your snapshot in the cloudformation template, and you're there!
+
+#### TODO list:
+* make use of private subnets for cluster instances
+* use ec2 VPC endpoint instead of public IP addresses for cluster instances
+
