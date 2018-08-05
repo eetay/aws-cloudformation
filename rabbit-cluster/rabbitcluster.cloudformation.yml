@@ -85,13 +85,13 @@ Resources:
         ToPort: '25672'
         CidrIp: 0.0.0.0/0
 
-  RabbitClusterScalingLaunchConfiguration2:
+  RabbitClusterScalingLaunchConfiguration:
     # example: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-iaminstanceprofile
     DependsOn: RabbitClusterSG
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       IamInstanceProfile: "RabbitClusterInstanceProfile"
-      AssociatePublicIpAddress: true
+      AssociatePublicIpAddress: false
       # ImageId: "ami-cfe4b2b0" # AWS linux
       # ImageId: "ami-0682fcf8a18f7dcb7" # rabbit-1
       ImageId: "ami-0bc107842ebeeb7c0" # RabbitMQ-3.7.7
@@ -101,7 +101,7 @@ Resources:
         - GroupId
       InstanceType: "t2.micro"
       InstanceMonitoring: true
-      LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration2
+      LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration
       KeyName: !Ref InstanceKeyPair
       UserData:
         Fn::Base64:
@@ -173,7 +173,7 @@ Resources:
       - "RabbitClusterLB2"
       # AvailabilityZones:
       #   Fn::GetAZs: !Ref "AWS::Region"
-      LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration2"
+      LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration"
       VPCZoneIdentifier:
         Fn::Split:
           - ","
