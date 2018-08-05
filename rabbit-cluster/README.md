@@ -29,7 +29,9 @@ whenever you update the CloudFormation template:
 
 ### Creating the RabbitMQ AMI
 
-Installation is loosely based on "[Installing RabbitMQ With Erlang on AWS EC2 Amazon Linux Instance](https://dzone.com/articles/installing-rabbitmq-37-along-with-erlang-version-2)"
+Installation is loosely based on "[Installing RabbitMQ With Erlang on AWS EC2 Amazon Linux Instance](https://dzone.com/articles/installing-rabbitmq-37-along-with-erlang-version-2)" 
+with few fixes, without configuration (which is handled in the CloudFormation template, since we want that to
+be updateable later on) and modified for RabbitMQ 3.7.7
 
 Start off with the AWS free linux AMI and then install RabbitMQ like so:
 
