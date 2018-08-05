@@ -12,6 +12,15 @@ ID in the cloudformation template
 
 ## Installation/Deploy
 
+#### Installation
+
+edit ./aws-exec.sh and modify these two settings:
+
+```bash
+export AWS_REGION=us-east-1
+export AWS_PROFILE=my-aws-profile
+```
+
 #### First deploy
 ```bash
 ./rabbit-stack create
