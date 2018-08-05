@@ -85,13 +85,13 @@ Resources:
         ToPort: '25672'
         CidrIp: 0.0.0.0/0
 
-  RabbitClusterScalingLaunchConfiguration:
+  RabbitClusterScalingLaunchConfiguration2:
     # example: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-iaminstanceprofile
     DependsOn: RabbitClusterSG
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       IamInstanceProfile: "RabbitClusterInstanceProfile"
-      AssociatePublicIpAddress: false
+      AssociatePublicIpAddress: true
       # ImageId: "ami-cfe4b2b0" # AWS linux
       # ImageId: "ami-0682fcf8a18f7dcb7" # rabbit-1
       ImageId: "ami-0bc107842ebeeb7c0" # RabbitMQ-3.7.7
@@ -101,7 +101,7 @@ Resources:
         - GroupId
       InstanceType: "t2.micro"
       InstanceMonitoring: true
-      LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration
+      LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration2
       KeyName: !Ref InstanceKeyPair
       UserData:
         Fn::Base64:
@@ -128,10 +128,10 @@ Resources:
           DeleteOnTermination: true
         DeviceName: "/dev/xvda"
 
-  RabbitClusterLB2:
+  RabbitClusterLB:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
-      LoadBalancerName: "RabbitClusterLB2"
+      LoadBalancerName: "RabbitClusterLB"
       HealthCheck:
         HealthyThreshold: "10"
         Interval: "30"
@@ -148,8 +148,8 @@ Resources:
       - LoadBalancerPort: '15672'
         InstancePort: '15672'
         Protocol: "TCP"
-      # Scheme: "internal"
-      Scheme: "internet-facing"
+      Scheme: "internal"
+      # Scheme: "internet-facing"
       SecurityGroups:
         - !Ref RabbitClusterSG
       Subnets:
@@ -157,7 +157,7 @@ Resources:
           - ","
           - !Ref RabbitClusterVPCSubnets
 
-  RabbitClusterInstancesASG:
+  RabbitClusterInstancesASG1:
     # UpdatePolicy:
     #   AutoScalingRollingUpdate:
     #     MinInstancesInService: "1"
@@ -166,14 +166,14 @@ Resources:
     #     WaitOnResourceSignals: "true"
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AutoScalingGroupName: "RabbitClusterInstancesASG"
+      AutoScalingGroupName: "RabbitClusterInstancesASG1"
       MinSize: "3"
       MaxSize: "4"
       LoadBalancerNames:
-      - "RabbitClusterLB2"
+      - "RabbitClusterLB"
       # AvailabilityZones:
       #   Fn::GetAZs: !Ref "AWS::Region"
-      LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration"
+      LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration2"
       VPCZoneIdentifier:
         Fn::Split:
           - ","
