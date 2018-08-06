@@ -131,6 +131,7 @@ Resources:
   RabbitClusterLB:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
+      CrossZone: true
       LoadBalancerName: "RabbitClusterLB"
       HealthCheck:
         HealthyThreshold: "10"
