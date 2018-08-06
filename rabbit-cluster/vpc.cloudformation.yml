@@ -268,12 +268,4 @@ Outputs:
         - !Ref PublicSubnetTwo
     Export:
       Name: !Sub 'PublicSubnets'
-  # Public1:
-  #   Value: !Ref PublicSubnetOne
-  #   Export:
-  #     Name: !Sub '${AWS::StackName}-Public1'
-  # Public2:
-  #   Value: !Ref PublicSubnetTwo
-  #   Export:
-  #     Name: !Sub '${AWS::StackName}-Public2'
 
