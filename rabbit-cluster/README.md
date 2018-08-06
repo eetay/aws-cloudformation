@@ -9,6 +9,8 @@ based on AWS linux free AMI, on which RabbitMQ 3.7.7 was installed (see below)
 This AMI is not included in the repo here, you have to build it and replace the AMI
 ID in the cloudformation template
 
+## Architecture
+
 ![alt text](./images/architecture.png)
 
 ## Installation/Deploy
