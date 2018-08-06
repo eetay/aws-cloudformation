@@ -1,20 +1,22 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters:
-  RabbitClusterVPC:
-    Type: String
   InstanceKeyPair:
     Type: String
-  RabbitClusterVPCSubnets:
+  S3Templates:
     Type: String
-    Description: Subnets available in default VPC
+    Description: 's3:// path where temporary templates reside'
 
 #
 # CloudFormation resources
 #
 Resources:
-
-
+  RabbitClusterVPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 'https://s3.amazonaws.com/samanage-sandbox-cim-artifacts/RabbitClusterStack/vpc.cloudformation.yml'  #!Sub '{S3Templates}/vpc.cloudformation.yml'
+      Parameters:
+        BastionKeyPair: EetayLaptop
 
   #
   # Role that our cluster instances will assume to provide access to other AWS resources
@@ -52,12 +54,13 @@ Resources:
         - !Ref RabbitClusterIamRole
       InstanceProfileName: "RabbitClusterInstanceProfile"
 
-  RabbitClusterSG:
+  RabbitClusterSG2:
+    DependsOn: RabbitClusterVPC
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupName: "RabbitClusterSG"
+      GroupName: "RabbitClusterSG2"
       GroupDescription: "Rabbit Cluster Instances Security Group"
-      VpcId: !Ref RabbitClusterVPC
+      VpcId: !GetAtt RabbitClusterVPC.Outputs.VpcId
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: '0'
@@ -67,7 +70,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: '22'
         ToPort: '22'
-        SourceSecurityGroupName: 'RabbitClusterSG'
+        CidrIp: !GetAtt RabbitClusterVPC.Outputs.VpcCidrBlock
       - IpProtocol: tcp
         FromPort: '4369'
         ToPort: '4369'
@@ -75,19 +78,19 @@ Resources:
       - IpProtocol: tcp
         FromPort: '5672'
         ToPort: '5672'
-        SourceSecurityGroupName: 'RabbitClusterSG'
+        CidrIp: !GetAtt RabbitClusterVPC.Outputs.VpcCidrBlock
       - IpProtocol: tcp
         FromPort: '15672'
         ToPort: '15672'
-        SourceSecurityGroupName: 'RabbitClusterSG'
+        CidrIp: !GetAtt RabbitClusterVPC.Outputs.VpcCidrBlock
       - IpProtocol: tcp
         FromPort: '25672'
         ToPort: '25672'
-        SourceSecurityGroupName: 'RabbitClusterSG'
+        CidrIp: !GetAtt RabbitClusterVPC.Outputs.VpcCidrBlock
 
   RabbitClusterScalingLaunchConfiguration2:
     # example: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-iaminstanceprofile
-    DependsOn: RabbitClusterSG
+    DependsOn: RabbitClusterSG2
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       IamInstanceProfile: "RabbitClusterInstanceProfile"
@@ -97,7 +100,7 @@ Resources:
       ImageId: "ami-0bc107842ebeeb7c0" # RabbitMQ-3.7.7
       SecurityGroups:
       - Fn::GetAtt:
-        - RabbitClusterSG
+        - RabbitClusterSG2
         - GroupId
       InstanceType: "t2.micro"
       InstanceMonitoring: true
@@ -134,11 +137,11 @@ Resources:
       CrossZone: true
       LoadBalancerName: "RabbitClusterLB"
       HealthCheck:
-        HealthyThreshold: "10"
-        Interval: "30"
+        HealthyThreshold: '10'
+        Interval: '30'
         Target: "TCP:5672" # "HTTP:15672/api/healthchecks/node"
         Timeout: "5"
-        UnhealthyThreshold: "2"
+        UnhealthyThreshold: '2'
       Listeners:
       - LoadBalancerPort: '22'
         InstancePort: '22'
@@ -152,11 +155,11 @@ Resources:
       Scheme: "internal"
       # Scheme: "internet-facing"
       SecurityGroups:
-        - !Ref RabbitClusterSG
+        - !Ref RabbitClusterSG2
       Subnets:
         Fn::Split:
           - ","
-          - !Ref RabbitClusterVPCSubnets
+          - !GetAtt RabbitClusterVPC.Outputs.PublicSubnets
 
   RabbitClusterInstancesASG1:
     # UpdatePolicy:
@@ -178,7 +181,7 @@ Resources:
       VPCZoneIdentifier:
         Fn::Split:
           - ","
-          - !Ref RabbitClusterVPCSubnets
+          - !GetAtt RabbitClusterVPC.Outputs.PublicSubnets
       Tags:
       - Key: "Name"
         Value: "RabbitClusterInstancesASG Instance"
