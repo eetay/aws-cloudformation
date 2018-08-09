@@ -9,8 +9,14 @@ based on AWS linux free AMI, on which RabbitMQ 3.7.7 was installed (see below)
 This AMI is not included in the repo here, you have to build it and replace the AMI
 ID in the cloudformation template
 
+## Architecture
 
-## Installation/Deploy
+![alt text](./images/architecture.png)
+
+Note: moving the RabbitMQ instances to the private subnets (right now they are
+on the public subnets) is on my TODO list...
+
+## Installation & deploy
 
 #### Installation
 
@@ -26,7 +32,7 @@ export AWS_PROFILE=my-aws-profile
 ./rabbit-stack create
 ```
 
-#### Deploying updates
+#### Deploying updated stack
 
 whenever you update the CloudFormation template:
 
@@ -36,15 +42,31 @@ whenever you update the CloudFormation template:
 
 ## Notes
 
-#### Example tunneling to internal ELB
+The load balancer (ELB) is defined to be internal one, planning for production
+configuration. If you wish, you can modify the CloudFormation template to be
+internet-facing, in which case it's accessible to all
 
-assuming you have a bastion host
+#### Accessing the internal ELB and the Rabbit cluster from your PC
+
+If you choose to keep the production-oriented setup, your application might use
+VPC peering to connect to the Rabbit cluster (via the ELB). However, you might need 
+a way to connect to the ELB from your personal computer just for testing purposes
+and administration:
+
+Assuming you have a bastion host and wish to connect from anywhere in internet to the ELB
+then you need to start these 2 tunnels - 1 for messaging (port 5672) of your application,
+the other for administrative web UI (port 15672, connect from browser to http://localhost:8000
+to view UI):
 
 ```bash
-ssh -N -i ~/.ssh/MyKeyToMyBastionHost.pem -L 8000:internal-RabbitClusrLB-1649447701.us-east-1.elb.amazonaws.com:15672 ec2-user@my-bastion-host
+ssh -N -i ~/.ssh/MyKeyToMyBastionHost.pem -L 5672:internal-RabbitClusrLB-1649447701.us-east-1.elb.amazonaws.com:5672 ec2-user@my-bastion-host &
+ssh -N -i ~/.ssh/MyKeyToMyBastionHost.pem -L 8000:internal-RabbitClusrLB-1649447701.us-east-1.elb.amazonaws.com:15672 ec2-user@my-bastion-host &
 ```
 
-Then access RabbitMQ's management UI using browser at localhost:8000
+Then open a browser and access RabbitMQ's management UI using browser at 'http://localhost:8000'
+The user/password are configured in the CloudFormation template
+Have your test application connect to 'amqp://root:root@localhost:5672' to send and
+recieve messages
 
 #### Creating the RabbitMQ AMI
 
@@ -69,4 +91,5 @@ Take a snapshot of the machine, put the ID of your snapshot in the cloudformatio
 #### TODO list:
 * make use of private subnets for cluster instances
 * use ec2 VPC endpoint instead of public IP addresses for cluster instances
+* close the incoming TCP security on port 4369 discovery
 
