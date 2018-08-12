@@ -247,6 +247,11 @@ Outputs:
     Value: !Ref VPC
     Export:
       Name: !Sub '${AWS::StackName}-VPC'
+  BastionDNS:
+    Description: 'The DNSName of bastion host for the VPC of this stack'
+    Value: !GetAtt Bastion.PublicDnsName
+    Export:
+      Name: !Sub '${AWS::StackName}-BastionDNS'
   Bastion:
     Description: 'The bastion host for the VPC of this stack'
     Value: !Ref Bastion
@@ -268,4 +273,12 @@ Outputs:
         - !Ref PublicSubnetTwo
     Export:
       Name: !Sub 'PublicSubnets'
+  PrivateSubnets:
+    Value:
+      Fn::Join:
+      - ","
+      - - !Ref PrivateSubnetOne
+        - !Ref PrivateSubnetTwo
+    Export:
+      Name: !Sub 'PrivateSubnets'
 

@@ -118,6 +118,7 @@ Resources:
             - "echo 'log.file.level = debug' >> /etc/rabbitmq/rabbitmq.conf"
             - "echo 'log.console.level = debug' >> /etc/rabbitmq/rabbitmq.conf"
             - "sudo rm -f /var/log/rabbitmq/*"
+            - "sudo rabbitmq-plugins enable rabbitmq_shovel rabbitmq_shovel_management"
             - "sudo service rabbitmq-server restart"
             - "sleep 3"
             - "rabbitmqctl add_user root root"
@@ -181,9 +182,17 @@ Resources:
       VPCZoneIdentifier:
         Fn::Split:
           - ","
-          - !GetAtt RabbitClusterVPC.Outputs.PublicSubnets
+          - !GetAtt RabbitClusterVPC.Outputs.PrivateSubnets
       Tags:
       - Key: "Name"
         Value: "RabbitClusterInstancesASG Instance"
         PropagateAtLaunch: true
-
+#
+# Outputs to be used by other CloudFormation templates if needed.
+#
+Outputs:
+  LoadBalancerURL:
+    Description: 'Load balancer entry point'
+    Value: !GetAtt RabbitClusterLB.DNSName
+    Export:
+      Name: !Sub '${AWS::StackName}-LoadBalancerURL'
