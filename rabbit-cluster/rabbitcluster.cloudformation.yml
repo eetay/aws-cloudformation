@@ -88,7 +88,7 @@ Resources:
         ToPort: '25672'
         CidrIp: !GetAtt RabbitClusterVPC.Outputs.VpcCidrBlock
 
-  RabbitClusterScalingLaunchConfiguration2:
+  RabbitClusterScalingLaunchConfiguration:
     # example: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-launchconfig.html#cfn-as-launchconfig-iaminstanceprofile
     DependsOn: RabbitClusterSG2
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -104,7 +104,7 @@ Resources:
         - GroupId
       InstanceType: "t2.micro"
       InstanceMonitoring: true
-      LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration2
+      LaunchConfigurationName: RabbitClusterScalingLaunchConfiguration
       KeyName: !Ref InstanceKeyPair
       UserData:
         Fn::Base64:
@@ -115,12 +115,14 @@ Resources:
             - "echo 'cluster_formation.peer_discovery_backend = rabbit_peer_discovery_aws' >> /etc/rabbitmq/rabbitmq.conf"
             - "echo 'cluster_formation.aws.region = us-east-1' >> /etc/rabbitmq/rabbitmq.conf"
             - "echo 'cluster_formation.aws.use_autoscaling_group = true' >> /etc/rabbitmq/rabbitmq.conf"
+            - "echo 'cluster_formation.aws.use_private_ip = true' >> /etc/rabbitmq/rabbitmq.conf"
             - "echo 'log.file.level = debug' >> /etc/rabbitmq/rabbitmq.conf"
             - "echo 'log.console.level = debug' >> /etc/rabbitmq/rabbitmq.conf"
             - "sudo rm -f /var/log/rabbitmq/*"
             - "sudo rabbitmq-plugins enable rabbitmq_shovel rabbitmq_shovel_management"
-            - "sudo service rabbitmq-server restart"
-            - "sleep 3"
+            - "sudo service rabbitmq-server stop"
+            - "sleep $(($RANDOM*2 % 17 *3  + 1))" # Against race Conditions During Initial Cluster Formation
+            - "sudo service rabbitmq-server start"
             - "rabbitmqctl add_user root root"
             - "rabbitmqctl set_permissions -p / root  '.*' '.*' '.*'"
             - "rabbitmqctl set_user_tags root administrator"
@@ -178,7 +180,7 @@ Resources:
       - "RabbitClusterLB"
       # AvailabilityZones:
       #   Fn::GetAZs: !Ref "AWS::Region"
-      LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration2"
+      LaunchConfigurationName: !Ref "RabbitClusterScalingLaunchConfiguration"
       VPCZoneIdentifier:
         Fn::Split:
           - ","
