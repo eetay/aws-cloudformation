@@ -92,4 +92,5 @@ Take a snapshot of the machine, put the ID of your snapshot in the cloudformatio
 * make use of private subnets for cluster instances
 * use ec2 VPC endpoint instead of public IP addresses for cluster instances
 * close the incoming TCP security on port 4369 discovery
+* optimize for production guided by likes of [RabbitMQ Best Practice with CloudAMQP](https://www.slideshare.net/ErlangSolutionsLtd/rabbitmq-best-practice-with-cloudamqp)
 
