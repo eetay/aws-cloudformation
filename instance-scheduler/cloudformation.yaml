@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "An example template with an IAM role for a Lambda state machine."
+
+#
+# CloudFormation resources
+#
+Resources:
+  #
+  # Role that our Lambda will assume to provide access to other AWS resources
+  #
+  SchedulerLambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: '/'
+
+  #
+  # Create a Policy and attach it to our Lambda Role.
+  #
+  IamPolicySchedulerLambdaExecution:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-IamPolicySchedulerLambdaExecution'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - xray:PutTraceSegments
+            - ec2:PutLogEvents
+          Resource: '*'
+        - Effect: Allow
+          Action:
+            - ec2:CreateTags
+            - ec2:DeleteTags
+            - ec2:DescribeInstances
+            - ec2:DescribeRegions
+            - ec2:ModifyInstanceAttribute
+            - ec2:StartInstances
+            - ec2:StopInstances
+          Resource: '*'
+      Roles:
+        - Ref: SchedulerLambdaExecutionRole
+
+  SchedulerLambda: 
+    Type: "AWS::Lambda::Function"
+    Properties: 
+      FunctionName: !Sub '${AWS::StackName}-SchedulerLambda'
+      Handler: "index.handler"
+      Role: 
+        Fn::GetAtt: 
+          - "SchedulerLambdaExecutionRole"
+          - "Arn"
+      Code: 
+        ZipFile: |
+          exports.handler = async (event, context) => {
+              console.log(event, context)
+              const response = {
+                  statusCode: 200,
+                  body: JSON.stringify("Hello World!")
+              }
+              return response
+          }
+      Runtime: "nodejs8.10"
+      Timeout: 900
+      TracingConfig:
+        Mode: "Active"
+      Environment:
+        Variables:
+          DUMMY: eetay
+  
+  ScheduledRule1: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "ScheduleRule1"
+      ScheduleExpression: "cron(0 0 ? * * *)"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: 
+            Fn::GetAtt: 
+              - "SchedulerLambda"
+              - "Arn"
+          Id: "SchedulerLambda"
+          Input: '{"STOP":["i-0a380d20e66d974fe"]}'
+
+  PermissionForRule1ToInvokeLambda: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: 
+        Ref: "SchedulerLambda"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: 
+        Fn::GetAtt: 
+          - "ScheduledRule1"
+          - "Arn"
+
