@@ -15,7 +15,7 @@ function ec2op(op, params) {
   }
   if (!OPS[op]) return Promise.reject(`Bad operation ${op}`)
   if (!(VALIDATIONS[op](params))) {
-    return Promise.reject(`${op}: Bad params: ${JSON.stringify(params)}`)
+    return Promise.reject(`${op}: Bad params: ${params}`)
   }
   // Execution
   return new Promise( (resolve, reject) => {
@@ -32,7 +32,7 @@ function ec2op(op, params) {
             }
         })
       } else {
-        reject(`You don't have permission to ${op} ${JSON.stringify(params)}`)
+        reject(`Error ${err.code} while ${op}(${params}): ${err}`)
       }
     })
   })
