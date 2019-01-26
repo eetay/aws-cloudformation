@@ -50,18 +50,21 @@ let instancesToIds = instances => instances.Reservations.reduce(
 let findInstances = filters => ec2op('describeInstances', { Filters: filters, DryRun: false })
 
 exports.handler = async (event, context) => {
+    console.log(event, context)
     let stopInstances = event.STOP && instancesToIds(await findInstances(event.STOP))
     let startInstances = event.START && instancesToIds(await findInstances(event.START))
+    console.log({stopInstances,startInstances})
     let result = {
       'START': startInstances && await ec2op('startInstances', { InstanceIds: startInstances, DryRun: true }),
       'STOP': stopInstances && await ec2op('stopInstances', { InstanceIds: stopInstances, DryRun: true }),
       stopInstances,
       startInstances
     }
-    const response = {
+    let response = {
         statusCode: 200,
         body: result
     }
+    console.log(response)
     return response
 }
 
