@@ -1,5 +1,3 @@
-# aws-cloudformation
-
 ![CloudFormation](./icons/CloudFormation.png)
 
 I like [CloudFormation](https://aws.amazon.com/cloudformation), I think it's a great tool. Granted, it took me a while getting used to the weird YAML files, but among the more important benefits of IaaS (Infrastructure as a Service), is the cloneability of it, which enables private isolated environments for each developer, multiple stage environments, etc, which is really mandatory if you want to have a proper CI/CD in place.
