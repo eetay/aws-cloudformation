@@ -1,9 +1,6 @@
 # Instance Scheduler Lambda
 
-A lambda function which is operated by cloudwatch events
-all configured and deployed using cloudformation template
-
-
+A simple scheduler for starting and stoping EC2 instances, based on lambda function which is operated by cloudwatch events. The rules you configure/update (as well as lambda) are deployed using cloudformation template
 
 
 ### Adding a new scheduling rule
