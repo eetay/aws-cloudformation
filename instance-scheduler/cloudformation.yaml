@@ -78,11 +78,11 @@ Resources:
         Variables:
           DUMMY: eetay
   
-  ScheduledRule1: 
+  StartBastionWeekdaysRule: 
     Type: AWS::Events::Rule
     Properties: 
-      Description: "ScheduleRule1"
-      ScheduleExpression: "cron(0 0 ? * * *)"
+      Description: "Start on 16:00 SUN-THU"
+      ScheduleExpression: "cron(0 16 ? * SUN-THU *)"
       State: "ENABLED"
       Targets: 
         - 
@@ -91,9 +91,9 @@ Resources:
               - "SchedulerLambda"
               - "Arn"
           Id: "SchedulerLambda"
-          Input: '{"STOP":["i-0a380d20e66d974fe"]}'
+          Input: '{"START":[{"Name":"tag:Name","Values":["bastion"]}]}'
 
-  PermissionForRule1ToInvokeLambda: 
+  PermissionForStartBastionWeekdaysRule: 
     Type: AWS::Lambda::Permission
     Properties: 
       FunctionName: 
@@ -102,6 +102,34 @@ Resources:
       Principal: "events.amazonaws.com"
       SourceArn: 
         Fn::GetAtt: 
-          - "ScheduledRule1"
+          - "StartBastionWeekdaysRule"
+          - "Arn"
+
+  StopBastionWeekdaysRule: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "Stop on 08:00 SUN-THU"
+      ScheduleExpression: "cron(0 8 ? * SUN-THU *)"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: 
+            Fn::GetAtt: 
+              - "SchedulerLambda"
+              - "Arn"
+          Id: "SchedulerLambda"
+          #Input: '{"STOP":[{"Name":"instance-id","Values":["i-0a380d20e66d974fe"]}]}'
+          Input: '{"STOP":[{"Name":"tag:Name","Values":["bastion"]}]}'
+
+  PermissionForStopBastionWeekdaysRule: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: 
+        Ref: "SchedulerLambda"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: 
+        Fn::GetAtt: 
+          - "StopBastionWeekdaysRule"
           - "Arn"
 

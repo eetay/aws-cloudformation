@@ -12,6 +12,13 @@ case $ACTION in
       --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
     ./cloudformation-tail.sh $STACK $AWS_REGION $AWS_PROFILE
     ;;
+  get-code)
+    URL=`aws lambda get-function --function-name $STACK-SchedulerLambda | grep Location | sed 's/^.*http/http/g;s/"//g'`
+    echo "downloading from: $URL"
+    TARGET=./dist/downloaded-lambda.zip
+    curl `echo $URL` > $TARGET
+    echo "downloaded to $TARGET"
+    ;;
   deploy)
     ZIP=SchedulerLambda.zip
     pushd SchedulerLambda > /dev/null && zip ../dist/$ZIP -r . && popd > /dev/null
