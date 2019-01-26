@@ -3,16 +3,28 @@ var AWS = require('aws-sdk');
 var ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
 
 function ec2op(op, params) {
-  if (['startInstances', 'stopInstances'].includes(op) && !(Array.isArray(params.InstanceIds) && params.InstanceIds.length>0)) {
-    return Promise.resolve(`${op}: nothing to do: ${JSON.stringify(params)}`)
+  const OPS = {
+    describeInstances: ec2.describeInstances,
+    startInstances: ec2.startInstances,
+    stopInstances: ec2.stopInstances
   }
+  const VALIDATIONS = {
+    describeInstances: params => Array.isArray(params.Filters),
+    startInstances: params => Array.isArray(params.InstanceIds),
+    stopInstances: params => Array.isArray(params.InstanceIds),
+  }
+  if (!OPS[op]) return Promise.reject(`Bad operation ${op}`)
+  if (!(VALIDATIONS[op](params))) {
+    return Promise.reject(`${op}: Bad params: ${JSON.stringify(params)}`)
+  }
+  // Execution
   return new Promise( (resolve, reject) => {
     ec2[op](params, function(err, data) {
       if (!params.DryRun) {
         resolve(data)
       } else if (err && err.code === 'DryRunOperation') {
         params.DryRun = false;
-        ec2.stopInstances(params, function(err, data) {
+        ec2[op](params, function(err, data) {
             if (err) {
               reject(err);
             } else if (data) {
