@@ -1,12 +1,15 @@
-# Instance Scheduler Lambda
+# Instance Scheduler
 
-A simple scheduler for starting and stoping EC2 instances, based on lambda function which is operated by cloudwatch events. The rules you configure/update (as well as lambda) are deployed using cloudformation template
+A simple AWS scheduler for starting and stoping AWS EC2 instances, based on lambda function which is triggered by scheduling rules defined as cloudwatch events. The deploying the scheduler as well as updating new a schedule uses cloudformation and is very simple to use.
 
+The scheduler is specifically not using any database so it can be used with AWS free tier, totally free.
+
+The scheduler supports identifying the EC2 instances via Filters, not just instance ID.
 
 ### Adding a new scheduling rule
 
 In order to add a schedule, you edit the cloudformation.yaml
-Add a ```AWS::Events::Rule``` and a matching ```AWS::Lambda::Permission```, like so:
+Add a ```AWS::Events::Rule``` and a matching ```AWS::Lambda::Permission``` objects, like so:
 
 ```yaml
   MyScheduleRule: 
@@ -37,9 +40,12 @@ Add a ```AWS::Events::Rule``` and a matching ```AWS::Lambda::Permission```, like
           - "Arn"
 ```
 
+modify ```Description```, ```ScheduleExpression``` and ```Input``` as per below:
+
+#### ScheduleExpression
 [ScheduleExpression](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) is AWS Cloudwatch expression
 
-### Format of the action taken
+#### Input
 The schedule action in the ```Input``` parameter is a JSON object containing either or both of "START"  and "STOP" keys, with value of each is a search filter for instances. Its format is identical to the [```Filters``` parameter](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html) of the DescribeInstances EC2 API.
 
 example: stop all instances named 'bastion'
@@ -47,12 +53,12 @@ example: stop all instances named 'bastion'
 {"STOP":[{"Name":"tag:Name","Values":["bastion"]}]}
 ```
 
-example: stop multiple instances by ids
+example: start multiple instances by ids
 ```json
 {"START":[{"Name":"instance-id","Values":["i-0a380d20e66d974fe", "i-0a3801231deadbabe"]}]}
 ```
 
-### deploy
+### deploying and updating
 
 after editing cloudformation.yaml to add your own rules
 first time to create the stack and deploy function:
