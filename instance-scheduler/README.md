@@ -60,12 +60,12 @@ example: stop multiple instances by ids
 after editing cloudformation.yaml to add your own rules
 first time to create the stack and deploy function:
 ```sh
-./deploy.sh create
-./deploy.sh deploy
+./deploy.sh create # create stack and deploy scheduling rules
+./deploy.sh deploy # deploy the lambda function code
 ``` 
 
 or 2nd time and on: 
 ```sh
-./deploy.sh update
+./deploy.sh update # update scheduling rules
 ```
 to update the cloudwatch rules
