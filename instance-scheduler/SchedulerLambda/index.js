@@ -23,8 +23,8 @@ function ec2op(op, params) {
       if (!params.DryRun) {
         resolve(data)
       } else if (err && err.code === 'DryRunOperation') {
-        params.DryRun = false;
-        ec2[op](params, function(err, data) {
+        params.DryRun = false 
+            ec2[op](params, function(err, data) {
             if (err) {
               reject(err);
             } else if (data) {
