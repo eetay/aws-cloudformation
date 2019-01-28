@@ -19,9 +19,9 @@ on the public subnets) is on my TODO list...
 ## Installation & deploy
 
 #### Installation
-[create a KeyPair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in AWS
-edit rabbitcluster.cloudformation.yaml and replace the KeyPair name to yours
-edit ./aws-exec.sh and modify these two settings:
+- [create a KeyPair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in AWS
+- edit ```rabbitcluster.cloudformation.yaml``` and replace the KeyPair name to yours
+- edit ```./aws-exec.sh``` and modify these two settings:
 
 ```bash
 export AWS_REGION=us-east-1
