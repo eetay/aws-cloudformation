@@ -1,0 +1,175 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  InstanceKeyPair:
+    Type: String
+  S3TemplatesBucket:
+    Type: String
+    Description: 'bucket name where temporary templates reside'
+  S3DataBucketName:
+    Type: String
+#
+# CloudFormation resources
+#
+Resources:
+  TheVPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${S3TemplatesBucket}/${AWS::StackName}/vpc.cloudformation.yml'
+      Parameters:
+        BastionKeyPair: OhioRegionKeypair
+
+  #
+  # Role that our cluster instances will assume to provide access to other AWS resources
+  #
+  IndexingLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            Service:
+            - "lambda.amazonaws.com"
+          Action:
+          - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: "IndexingLambdaAccessPolicy"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - "s3:*"
+              - "logs:*"
+              - "es:*"
+              - "ec2:*"
+              Resource: '*'
+
+  ElasticsearchDomain:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      DomainName: 'index'
+      ElasticsearchVersion: '6.7'
+      ElasticsearchClusterConfig:
+        InstanceCount: '1'
+        InstanceType: 't2.small.elasticsearch'
+      EBSOptions:
+        EBSEnabled: 'true'
+        Iops: 0
+        VolumeSize: 10
+        VolumeType: standard
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: '0'
+      AccessPolicies:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: '*'
+            Action: 'es:*'
+            Resource: '*'
+      AdvancedOptions:
+        rest.action.multi.allow_explicit_index: 'true'
+      Tags:
+        - Key: "Name"
+          Value: !Sub 'Indexing DB of ${AWS::StackName}'
+      VPCOptions:
+        SubnetIds:
+          - !Select [0, !Split [",", !GetAtt TheVPC.Outputs.PrivateSubnets]]
+        SecurityGroupIds:
+          - !Ref ElasticSearchSG
+
+  ElasticSearchSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'SG for elasticsearch'
+      VpcId: !GetAtt TheVPC.Outputs.VpcId
+      GroupName: 'ElasticSearchSG'
+      SecurityGroupIngress:
+        - FromPort: '443'
+          IpProtocol: tcp
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+
+  DataBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: BucketPermission
+    Properties:
+      BucketName: !Ref S3DataBucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+        - Event: 's3:ObjectCreated:*'
+          Function: !GetAtt IndexingLambda.Arn
+
+  DataBucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref DataBucket
+      PolicyDocument: 
+        Statement: 
+          - Effect: "Allow"
+            Action: 
+              - "s3:*"
+            Resource: !Sub "arn:aws:s3:::${S3DataBucketName}/*"
+            Principal: 
+              AWS: "arn:aws:iam::712823164894:root"
+
+  BucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref IndexingLambda
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref "AWS::AccountId"
+      SourceArn: !Sub "arn:aws:s3:::${S3DataBucketName}"
+
+  IndexingLambdaSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupName: "IndexingLambdaSG"
+      GroupDescription: !Sub '${AWS::StackName} Indexing Lambda Security Group'
+      VpcId: !GetAtt TheVPC.Outputs.VpcId
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: '0'
+        ToPort: '65535'
+        CidrIp: 0.0.0.0/0
+
+  IndexingLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: "IndexingLambda"
+      Description: !Sub 'Indexing Lambda for ${AWS::StackName}'
+      Handler: index.handler
+      Role: !GetAtt IndexingLambdaExecutionRole.Arn
+      Code:
+        ZipFile: !Sub |
+          exports.handler = async (event) => {
+              const response = {
+                  statusCode: 200,
+                  body: event,
+              };
+              event.Records.forEach(
+                  record=>{
+                      console.log('S3 EVENT:',JSON.stringify(record.s3))
+                  }
+              )
+              return response;
+          };
+      Timeout: 300
+      Runtime: nodejs8.10
+      VpcConfig:
+        SecurityGroupIds: 
+        - !Ref IndexingLambdaSG
+        SubnetIds: !Split [",", !GetAtt TheVPC.Outputs.PrivateSubnets]
+      Environment:
+        Variables:
+          STACK_NAME: !Sub '${AWS::StackName}'
+          DATABASE: !GetAtt ElasticsearchDomain.DomainEndpoint
+
+Outputs:
+  DomainArn:
+    Value: !GetAtt ElasticsearchDomain.DomainArn
