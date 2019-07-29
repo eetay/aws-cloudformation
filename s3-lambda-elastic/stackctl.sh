@@ -3,7 +3,7 @@ if [ -z "$AWS_EXEC" ]; then source ./aws-exec.sh ""; fi
 ACTION=$1
 MYDIR=`dirname $0`
 STACK=DemoStack
-S3TEMPLATESBUCKET=preconfigured-template-bucket
+S3TEMPLATESBUCKET=preconfigured-temlate-bucket
 S3TEMPLATES=s3://$S3TEMPLATESBUCKET/$STACK
 
 case $ACTION in
@@ -15,7 +15,7 @@ case $ACTION in
       --parameters \
         ParameterKey=InstanceKeyPair,ParameterValue=OhioRegionKeypair \
         ParameterKey=S3TemplatesBucket,ParameterValue=$S3TEMPLATESBUCKET \
-        ParameterKey=S3DataBucketName,ParameterValue=hrtf-data-bucket
+        ParameterKey=S3DataBucketName,ParameterValue=preconfigured-template-bucket
     ./cloudformation-tail.sh $STACK $AWS_REGION $AWS_PROFILE
     ;;
   delete)

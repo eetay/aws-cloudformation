@@ -172,4 +172,6 @@ Resources:
 
 Outputs:
   DomainArn:
-    Value: !GetAtt ElasticsearchDomain.DomainArn
+    Value: !GetAtt ElasticsearchDomain.DomainEndpoint
+    Export: 
+      Name: !Sub '${AWS::StackName}ElasticsearchEndpoint'

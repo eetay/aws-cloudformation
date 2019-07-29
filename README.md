@@ -12,3 +12,6 @@ A [RabbitMQ](https://www.rabbitmq.com/) cluster with scalability group, load bal
 
 [CloudFormation Instance Scheduler](./instance-scheduler/README.md)
 A simple ec2 instance start/stop using CloudWatch scheduling rules and cloudformation deployment. 
+
+[CloudFormation Self Indexing S3 Bucket](./s3-lambda-elastic/README.md)
+A S3 bucket which automatically indexes any files uploaded into elasticsearch. 
