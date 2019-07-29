@@ -6,6 +6,8 @@ Parameters:
   S3TemplatesBucket:
     Type: String
     Description: 'bucket name where temporary templates reside'
+  ElasticDomainName:
+    Type: String
   S3DataBucketName:
     Type: String
 #
@@ -51,7 +53,7 @@ Resources:
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      DomainName: 'index'
+      DomainName: !Ref ElasticDomainName
       ElasticsearchVersion: '6.7'
       ElasticsearchClusterConfig:
         InstanceCount: '1'
@@ -171,7 +173,7 @@ Resources:
           DATABASE: !GetAtt ElasticsearchDomain.DomainEndpoint
 
 Outputs:
-  DomainArn:
+  EsDomainEndpoint:
     Value: !GetAtt ElasticsearchDomain.DomainEndpoint
     Export: 
       Name: !Sub '${AWS::StackName}ElasticsearchEndpoint'

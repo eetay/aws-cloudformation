@@ -1,7 +1,7 @@
 #!/bin/bash
 SSH="ssh -nNT -i ~/.ssh/OhioRegionKeypair.pem"
 BASTION=ec2-user@ec2-52-14-190-167.us-east-2.compute.amazonaws.com
-STACK=DemoStack
+source config
 ES_HOST=$(./aws-exec.sh aws cloudformation list-exports --output text --query 'Exports[?Name==`'${STACK}'ElasticsearchEndpoint`].Value' | tail -1)
 function terminate() {
 	echo "Terminating SSHs: $(jobs -p)"

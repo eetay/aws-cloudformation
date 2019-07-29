@@ -2,11 +2,11 @@
 if [ -z "$AWS_EXEC" ]; then source ./aws-exec.sh ""; fi
 ACTION=$1
 MYDIR=`dirname $0`
-STACK=DemoStack
+source config
 STACKLOWERCASE=`echo "$STACK" | tr '[:upper:]' '[:lower:]'`
-S3TEMPLATESBUCKET=preconfigured-template-bucket
 S3TEMPLATES=s3://$S3TEMPLATESBUCKET/$STACK
-S3DATABUCKET=data-bucket
+S3DATABUCKET=$STACKLOWERCASE-data-bucket
+ELASTICDOMAIN=$STACKLOWERCASE-index
 
 case $ACTION in
   update|create)
@@ -16,6 +16,7 @@ case $ACTION in
       --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
       --parameters \
         ParameterKey=InstanceKeyPair,ParameterValue=OhioRegionKeypair \
+        ParameterKey=ElasticDomainName,ParameterValue=$ELASTICDOMAIN \
         ParameterKey=S3TemplatesBucket,ParameterValue=$S3TEMPLATESBUCKET \
         ParameterKey=S3DataBucketName,ParameterValue=$S3DATABUCKET
     ./cloudformation-tail.sh $STACK $AWS_REGION $AWS_PROFILE
@@ -35,5 +36,6 @@ case $ACTION in
   *)
     echo "Usage: $0 [create|delete|update]"
     echo "Usage: $0 deploy <Function Name>"
+    echo "STACK=$STACK"
     ;;
 esac

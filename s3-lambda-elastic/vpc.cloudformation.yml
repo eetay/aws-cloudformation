@@ -247,11 +247,11 @@ Outputs:
     Value: !Ref VPC
     Export:
       Name: !Sub '${AWS::StackName}-VPC'
-  Bastion:
-    Description: 'The bastion host for the VPC of this stack'
-    Value: !Ref Bastion
+  BastionDnsName:
+    Description: !Sub 'The domain name of bastion host for the VPC of stack ${AWS::StackName}'
+    Value: !GetAttr Bastion.PublicDnsName
     Export:
-      Name: !Sub '${AWS::StackName}-Bastion'
+      Name: !Sub '${AWS::StackName}-BastionDnsName'
   VpcCidrBlock:
     Value: !GetAtt VPC.CidrBlock
     Export:
