@@ -15,7 +15,7 @@ case $ACTION in
       --template-body file://./s3lambdaelasticsearch.cloudformation.yml \
       --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
       --parameters \
-        ParameterKey=Project,ParameterValue=$STACK \
+        ParameterKey=Project,ParameterValue=$PROJECT \
         ParameterKey=InstanceKeyPair,ParameterValue=OhioRegionKeypair \
         ParameterKey=ElasticDomainName,ParameterValue=$ELASTICDOMAIN \
         ParameterKey=S3TemplatesBucket,ParameterValue=$S3TEMPLATESBUCKET \

@@ -8,6 +8,7 @@
 ```bash
 STACK=HRTFDemoStack
 S3TEMPLATESBUCKET=some-preconfigured-s3-bucket-for-cloudformation-templates
+PROJECT=MYPROJ # for billing purposes
 ```
 
 3. Create the stack
