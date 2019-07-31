@@ -7,6 +7,10 @@ Parameters:
     Type: String
     Description: 'Cidr of internet IPs which can ssh into Bastion; default: whole world'
     Default: 0.0.0.0/0
+  BillToTag: 
+    Type: String
+    Description: 'Billing designator'
+    Default: 'not-set'
 
 Mappings:
   # Hard values for the subnet masks. These masks define
@@ -47,6 +51,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub 'VPC of ${AWS::StackName}'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
 
   # Two public subnets, where containers can have public IP addresses
   PublicSubnetOne:
@@ -62,6 +68,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Public1'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
 
   PublicSubnetTwo:
     Type: AWS::EC2::Subnet
@@ -76,6 +84,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Public2'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
 
   BastionSG:
     Type: "AWS::EC2::SecurityGroup"
@@ -93,6 +103,11 @@ Resources:
         FromPort: '22'
         ToPort: '22'
         CidrIp: !Ref BastionAccessIpRange
+      Tags:
+      - Key: "Name"
+        Value: !Sub 'Bastion SG of ${AWS::StackName}'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
 
   Bastion:
     Type: AWS::EC2::Instance
@@ -116,6 +131,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub 'Bastion of ${AWS::StackName}'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
 
   # Two private subnets where instances will only have private
   # IP addresses, and will only be reachable by other members of the
@@ -132,6 +149,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Private1'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
 
   PrivateSubnetTwo:
     Type: AWS::EC2::Subnet
@@ -145,6 +164,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Private2'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
 
   # Setup networking resources for the public subnets. Instances
   # in the public subnets have public IP addresses and the routing table
@@ -155,6 +176,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-IGW'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
   GatewayAttachement:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -164,6 +187,11 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref 'VPC'
+      Tags:
+      - Key: "Name"
+        Value: !Sub '${AWS::StackName}-PublicRouteTable'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: GatewayAttachement
@@ -190,26 +218,41 @@ Resources:
     Type: AWS::EC2::EIP
     DependsOn: GatewayAttachement
     Properties:
-        Domain: vpc
+      Domain: vpc
   NatGatewayTwoAttachment:
     Type: AWS::EC2::EIP
     DependsOn: GatewayAttachement
     Properties:
-        Domain: vpc
+      Domain: vpc
   NatGatewayOne:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayOneAttachment.AllocationId
       SubnetId: !Ref PublicSubnetOne
+      Tags:
+      - Key: "Name"
+        Value: !Sub '${AWS::StackName}-NatGatewayOne'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
   NatGatewayTwo:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayTwoAttachment.AllocationId
       SubnetId: !Ref PublicSubnetTwo
+      Tags:
+      - Key: "Name"
+        Value: !Sub '${AWS::StackName}-NatGatewayTwo'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
   PrivateRouteTableOne:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref 'VPC'
+      Tags:
+      - Key: "Name"
+        Value: !Sub '${AWS::StackName}-PrivateRouteTableOne'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
   PrivateRouteOne:
     Type: AWS::EC2::Route
     Properties:
@@ -225,6 +268,11 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref 'VPC'
+      Tags:
+      - Key: "Name"
+        Value: !Sub '${AWS::StackName}-PrivateRouteTableTwo'
+      - Key: "BillTo"
+        Value: !Ref BillToTag
   PrivateRouteTwo:
     Type: AWS::EC2::Route
     Properties:
@@ -248,8 +296,8 @@ Outputs:
     Export:
       Name: !Sub '${AWS::StackName}-VPC'
   BastionDnsName:
-    Description: !Sub 'The domain name of bastion host for the VPC of stack ${AWS::StackName}'
-    Value: !GetAttr Bastion.PublicDnsName
+    #Description: !Sub 'The domain name of bastion host for the VPC of stack ${AWS::StackName}'
+    Value: !GetAtt Bastion.PublicDnsName
     Export:
       Name: !Sub '${AWS::StackName}-BastionDnsName'
   VpcCidrBlock:
