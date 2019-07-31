@@ -10,6 +10,11 @@ Parameters:
     Type: String
   S3DataBucketName:
     Type: String
+  Project:
+    Type: String
+    Description: 'Billing designator'
+    Default: 'not-set'
+
 #
 # CloudFormation resources
 #
@@ -20,6 +25,7 @@ Resources:
       TemplateURL: !Sub 'https://s3.amazonaws.com/${S3TemplatesBucket}/${AWS::StackName}/vpc.cloudformation.yml'
       Parameters:
         BastionKeyPair: OhioRegionKeypair
+        Project: !Ref Project
 
   #
   # Role that our cluster instances will assume to provide access to other AWS resources

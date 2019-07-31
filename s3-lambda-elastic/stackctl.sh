@@ -15,6 +15,7 @@ case $ACTION in
       --template-body file://./s3lambdaelasticsearch.cloudformation.yml \
       --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
       --parameters \
+        ParameterKey=Project,ParameterValue=$STACK \
         ParameterKey=InstanceKeyPair,ParameterValue=OhioRegionKeypair \
         ParameterKey=ElasticDomainName,ParameterValue=$ELASTICDOMAIN \
         ParameterKey=S3TemplatesBucket,ParameterValue=$S3TEMPLATESBUCKET \
@@ -28,7 +29,12 @@ case $ACTION in
   deploy)
     mkdir -p dist
     FUNC=$2
-    pushd $FUNC > /dev/null
+    if [ -z "$FUNC" ]; then
+        echo "Usage: $0 deploy <Function Name>"
+	exit 1
+    fi
+    pushd $FUNC > /dev/null || exit 1
+    npm i
     zip -r ../dist/$FUNC.zip .
     popd > /dev/null
     aws lambda update-function-code --function-name $FUNC --zip-file fileb://./dist/$FUNC.zip

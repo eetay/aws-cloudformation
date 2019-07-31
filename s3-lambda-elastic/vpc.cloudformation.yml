@@ -7,7 +7,7 @@ Parameters:
     Type: String
     Description: 'Cidr of internet IPs which can ssh into Bastion; default: whole world'
     Default: 0.0.0.0/0
-  BillToTag: 
+  Project: 
     Type: String
     Description: 'Billing designator'
     Default: 'not-set'
@@ -51,8 +51,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub 'VPC of ${AWS::StackName}'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
 
   # Two public subnets, where containers can have public IP addresses
   PublicSubnetOne:
@@ -68,8 +68,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Public1'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
 
   PublicSubnetTwo:
     Type: AWS::EC2::Subnet
@@ -84,8 +84,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Public2'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
 
   BastionSG:
     Type: "AWS::EC2::SecurityGroup"
@@ -106,8 +106,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub 'Bastion SG of ${AWS::StackName}'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
 
   Bastion:
     Type: AWS::EC2::Instance
@@ -131,8 +131,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub 'Bastion of ${AWS::StackName}'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
 
   # Two private subnets where instances will only have private
   # IP addresses, and will only be reachable by other members of the
@@ -149,8 +149,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Private1'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
 
   PrivateSubnetTwo:
     Type: AWS::EC2::Subnet
@@ -164,8 +164,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-Private2'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
 
   # Setup networking resources for the public subnets. Instances
   # in the public subnets have public IP addresses and the routing table
@@ -176,8 +176,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-IGW'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
   GatewayAttachement:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -190,8 +190,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-PublicRouteTable'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: GatewayAttachement
@@ -232,8 +232,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-NatGatewayOne'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
   NatGatewayTwo:
     Type: AWS::EC2::NatGateway
     Properties:
@@ -242,8 +242,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-NatGatewayTwo'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
   PrivateRouteTableOne:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -251,8 +251,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-PrivateRouteTableOne'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
   PrivateRouteOne:
     Type: AWS::EC2::Route
     Properties:
@@ -271,8 +271,8 @@ Resources:
       Tags:
       - Key: "Name"
         Value: !Sub '${AWS::StackName}-PrivateRouteTableTwo'
-      - Key: "BillTo"
-        Value: !Ref BillToTag
+      - Key: "Project"
+        Value: !Ref Project
   PrivateRouteTwo:
     Type: AWS::EC2::Route
     Properties:
