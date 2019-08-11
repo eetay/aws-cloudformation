@@ -2,7 +2,7 @@
 SGLIST=$(./aws-exec.sh --silent aws ec2 describe-security-groups --query 'SecurityGroups[*].GroupId' | sed 's/[^-a-z0-9,]//g' | sort | tr -d '\n')
 #echo $SGLIST
 if [ "$1" == "--where-used" ]; then
-	WHERE_USED=",InstanceId:Attachment.InstanceId,PublicDns:Association.PublicDnsName"
+	WHERE_USED=",Description:Description,InstanceId:Attachment.InstanceId,PublicDns:Association.PublicDnsName"
 else
 	WHERE_USED=
 fi

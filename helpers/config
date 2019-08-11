@@ -1,0 +1,4 @@
+# Modify these values before executing stackctl.sh
+STACK=MyStackName
+S3TEMPLATESBUCKET=my-s3-bucket-for-cf-templates   # Name of an existing s3 bucket
+PROJECT=MyProjectName   # For tagging and billing purposes
