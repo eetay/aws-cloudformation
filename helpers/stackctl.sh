@@ -19,10 +19,12 @@ case $ACTION in
       fi
       CF_ACTION=create-change-set
       CHANGESET="--change-set-name changeset-stage"
+      S3TEMPLATESUFFIX=staged
     else
       CF_ACTION=${ACTION}-stack
+      S3TEMPLATESUFFIX=
     fi
-    cp *.cloudformation.yml ./s3bucket && aws s3 sync ./s3bucket $S3TEMPLATES
+    cp *.cloudformation.yml ./s3bucket && aws s3 sync ./s3bucket "${S3TEMPLATES}-${S3TEMPLATESUFFIX}"
     aws cloudformation ${CF_ACTION} --stack-name $STACK \
       --template-body file://./personifi.cloudformation.yml \
       --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
@@ -40,7 +42,7 @@ case $ACTION in
     ;;
   commit)
     aws cloudformation execute-change-set --stack-name $STACK --change-set-name changeset-stage
-    ./cloudformation-tail.sh $STACK $AWS_REGION $AWS_PROFILE
+    ./cloudformation-tail.sh $STACK $AWS_REGION $AWS_PROFILE && aws s3 sync "${S3TEMPLATES}-staged" $S3TEMPLATES
     ;;
   show|show-staged?)
     aws cloudformation describe-change-set --stack-name $STACK --change-set-name changeset-stage | jq '.Changes[]'
