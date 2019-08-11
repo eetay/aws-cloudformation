@@ -12,4 +12,4 @@ if [ "$1" == "--silent" ]; then
 else
 	export | grep AWS | sed 's/^.*AWS/AWS/g'
 fi
-$*
+"$@"
