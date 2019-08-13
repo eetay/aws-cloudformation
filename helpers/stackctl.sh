@@ -5,8 +5,13 @@ MYDIR=`dirname $0`
 source config
 STACKLOWERCASE=`echo "$STACK" | tr '[:upper:]' '[:lower:]'`
 S3TEMPLATES=s3://$S3TEMPLATESBUCKET/$STACK
+ELASTICDOMAIN=$STACKLOWERCASE-index
 S3DATABUCKET=$STACKLOWERCASE-backup-bucket
-
+if ! which cfn-lint; then
+  echo "Please install cfn-lint:"
+  echo "     pip intall cfn-lint"
+  exit 1
+fi
 case $ACTION in
   update|create|stage)
     if [ $ACTION == stage ]; then
@@ -19,20 +24,26 @@ case $ACTION in
       fi
       CF_ACTION=create-change-set
       CHANGESET="--change-set-name changeset-stage"
-      S3TEMPLATESUFFIX=staged
+      S3TEMPLATESUFFIX=-staged
     else
       CF_ACTION=${ACTION}-stack
       S3TEMPLATESUFFIX=
     fi
-    cp *.cloudformation.yml ./s3bucket && aws s3 sync ./s3bucket "${S3TEMPLATES}-${S3TEMPLATESUFFIX}"
+    cfn-lint main.cloudformation.yml | sed "s/^W/\x1B[33m/g;s/$/\x1B[39m/g;s/^E/\x1B[31m/g"
+    if [ "${PIPESTATUS[0]}" == 6 ]; then
+      echo "linting errors"
+      exit 1
+    fi
+    cp *.cloudformation.yml ./s3bucket && aws s3 sync ./s3bucket "${S3TEMPLATES}${S3TEMPLATESUFFIX}"
     aws cloudformation ${CF_ACTION} --stack-name $STACK \
-      --template-body file://./personifi.cloudformation.yml \
+      --template-body file://./main.cloudformation.yml \
       --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
       --parameters \
         ParameterKey=Project,ParameterValue=$PROJECT \
         ParameterKey=InstanceKeyPair,ParameterValue=OhioRegionKeypair \
         ParameterKey=S3TemplatesBucket,ParameterValue=$S3TEMPLATESBUCKET \
-        ParameterKey=S3BackupBucketName,ParameterValue=$S3DATABUCKET \
+        ParameterKey=ElasticDomainName,ParameterValue=$ELASTICDOMAIN \
+        ParameterKey=S3DataBucketName,ParameterValue=$S3DATABUCKET \
         $CHANGESET
     ./cloudformation-tail.sh $STACK $AWS_REGION $AWS_PROFILE
     if [ $ACTION == change-set ]; then

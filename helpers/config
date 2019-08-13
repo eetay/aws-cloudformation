@@ -1,4 +1,7 @@
 # Modify these values before executing stackctl.sh
 STACK=MyStackName
 S3TEMPLATESBUCKET=my-s3-bucket-for-cf-templates   # Name of an existing s3 bucket
-PROJECT=MyProjectName   # For tagging and billing purposes
+PROJECT=MyProjectName                             # For tagging and billing purposes
+export AWS_SDK_LOAD_CONFIG=1
+export AWS_DEFAULT_REGION=us-east-2               # Change to your region
+export AWS_PROFILE=default
